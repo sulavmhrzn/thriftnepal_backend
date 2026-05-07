@@ -43,3 +43,11 @@ class TokenResponseSerializer(serializers.Serializer):
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+
+class UserListSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    full_name = serializers.CharField()
+    role = serializers.CharField()
+    is_verified = serializers.BooleanField()
+    is_deleted = serializers.BooleanField()

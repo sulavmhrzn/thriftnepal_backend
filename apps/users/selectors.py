@@ -37,3 +37,7 @@ def get_active_verified_user_by_email(email, password):
     if not user.is_verified:
         raise ValidationError("User not verified")
     return user
+
+
+def get_all_users():
+    return User.objects.all().order_by("-created_at")

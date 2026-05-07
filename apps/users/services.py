@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from apps.users.enums import UserRole
 from apps.users.selectors import (
     get_active_verified_user_by_email,
+    get_all_users,
     get_user_by_email,
     get_user_by_verification_token,
 )
@@ -48,3 +49,12 @@ def logout_user(refresh_token):
         token.blacklist()
     except TokenError:
         raise ValidationError("Invalid or expired refresh token.")
+
+
+def list_all_users(filters):
+    users = get_all_users()
+    if filters.get("role"):
+        users = users.filter(role=filters["role"])
+    if filters.get("is_verified") is not None:
+        users = users.filter(is_verified=filters["is_verified"])
+    return users

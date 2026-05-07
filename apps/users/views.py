@@ -2,14 +2,22 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.core.permissions import YAMLPermission
 from apps.users.serializers import (
     LoginSerializer,
     LogoutSerializer,
     RegisterSerializer,
     TokenResponseSerializer,
+    UserListSerializer,
     VerifyEmailSerializer,
 )
-from apps.users.services import login_user, logout_user, register_user, verify_email
+from apps.users.services import (
+    list_all_users,
+    login_user,
+    logout_user,
+    register_user,
+    verify_email,
+)
 
 
 class RegisterView(APIView):
@@ -70,3 +78,15 @@ class LogoutView(APIView):
         serializer.is_valid(raise_exception=True)
         logout_user(serializer.validated_data["refresh"])
         return Response({"message": "Logged out successfully"})
+
+
+class UserListView(APIView):
+    resource_name = "users"
+    permission_classes = [YAMLPermission]
+
+    def get(self, request):
+        users = list_all_users(request.GET)
+        serializer = UserListSerializer(users, many=True)
+        return Response(
+            {"message": "Users fetched successfully.", "data": serializer.data}
+        )
