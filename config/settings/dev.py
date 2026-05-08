@@ -1,3 +1,5 @@
+import structlog
+
 from . import base
 
 for setting_name in dir(base):
@@ -6,6 +8,7 @@ for setting_name in dir(base):
 
 env = base.env
 BASE_DIR = base.BASE_DIR
+LOGGING = base.LOGGING
 
 
 # Development defaults can be overridden from .env
@@ -33,3 +36,12 @@ EMAIL_USE_TLS = False
 
 FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", default="http://localhost:3000")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="admin@thriftnepal.com")
+
+LOGGING["formatters"] = {
+    "colored": {
+        "()": structlog.stdlib.ProcessorFormatter,
+        "processor": structlog.dev.ConsoleRenderer(colors=True),
+    }
+}
+
+LOGGING["handlers"]["console"]["formatter"] = "colored"

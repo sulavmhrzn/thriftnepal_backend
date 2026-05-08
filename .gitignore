@@ -3,4 +3,5 @@ __pycache__/
 media/
 *.pyc
 .env
-
+*.log
+*.logs
