@@ -18,7 +18,9 @@ User = get_user_model()
 def register_user(email, full_name, password, role=UserRole.BUYER):
     exists = get_user_by_email(email)
     if exists:
-        raise ValidationError("User with this email already exists")
+        raise ValidationError(
+            {"non_field_errors": ["User with this email already exists"]}
+        )
     user = User.objects.create_user(
         email=email, full_name=full_name, password=password, role=role
     )
@@ -30,7 +32,7 @@ def verify_email(token: str):
     user = get_user_by_verification_token(token)
 
     if user.is_verified:
-        raise ValidationError("Account already verified.")
+        raise ValidationError({"non_field_errors": ["Account already verified."]})
 
     user.is_verified = True
     user.save(update_fields=["is_verified", "updated_at"])
@@ -48,7 +50,9 @@ def logout_user(refresh_token):
         token = RefreshToken(refresh_token)
         token.blacklist()
     except TokenError:
-        raise ValidationError("Invalid or expired refresh token.")
+        raise ValidationError(
+            {"non_field_errors": ["Invalid or expired refresh token."]}
+        )
 
 
 def list_all_users(filters):

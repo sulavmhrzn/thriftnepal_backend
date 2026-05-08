@@ -23,19 +23,23 @@ def get_user_by_verification_token(token: str):
         user_id = decode_verification_token(token)
         return get_user_by_id(user_id)
     except signing.SignatureExpired:
-        raise ValidationError("Verification link expired. Request a new one.")
+        raise ValidationError(
+            {"non_field_errors": ["Verification link expired. Request a new one."]}
+        )
     except signing.BadSignature:
-        raise ValidationError("Invalid verification token.")
+        raise ValidationError({"non_field_errors": ["Invalid verification token."]})
 
 
 def get_active_verified_user_by_email(email, password):
     user = get_user_by_email(email)
     if not user or not user.check_password(password):
-        raise ValidationError("Invalid credentials")
+        raise ValidationError({"non_field_errors": ["Invalid credentials"]})
     if not user.is_active:
-        raise ValidationError("Invalid credentials")
+        raise ValidationError({"non_field_errors": ["Invalid credentials"]})
     if not user.is_verified:
-        raise ValidationError("User not verified")
+        raise ValidationError(
+            {"non_field_errors": ["User is not verified. Please check your inbox."]}
+        )
     return user
 
 
