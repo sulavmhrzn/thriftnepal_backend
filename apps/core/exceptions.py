@@ -1,5 +1,4 @@
-import logging
-
+import structlog
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.exceptions import PermissionDenied as DjangoPermissionDenied
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -17,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import exception_handler
 from rest_framework_simplejwt.exceptions import InvalidToken
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def custom_exception_handler(exc, context):
@@ -54,13 +53,13 @@ def _build_response(exc, detail, status_code: int) -> Response:
 
     if status_code >= 500:
         logger.error(
-            "Server error",
+            "server_error",
             extra={"code": code, "detail": detail},
             exc_info=True,
         )
     else:
         logger.warning(
-            "Client error",
+            "client_error",
             extra={"code": code, "status_code": status_code},
         )
 
@@ -80,7 +79,7 @@ def _handle_unhandled_exception(exc, context) -> Response:
     Catches everything DRF did not handle.
     """
     logger.error(
-        "Unhandled exception",
+        "unhandled_exception",
         exc_info=True,
         extra={
             "view": context.get("view").__class__.__name__
