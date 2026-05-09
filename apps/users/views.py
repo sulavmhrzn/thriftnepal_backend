@@ -1,8 +1,9 @@
+from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.permissions import YAMLPermission
+from apps.core.responses import success_response
 from apps.users.serializers import (
     LoginSerializer,
     LogoutSerializer,
@@ -27,11 +28,10 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         register_user(**serializer.validated_data)
-        return Response(
-            {
-                "message": "User registered successfully",
-                "data": serializer.data,
-            }
+        return success_response(
+            message="User registered successfully",
+            data=serializer.data,
+            status_code=status.HTTP_201_CREATED,
         )
 
 
@@ -42,11 +42,10 @@ class VerifyEmailView(APIView):
         serializer = VerifyEmailSerializer(data=request.GET)
         serializer.is_valid(raise_exception=True)
         user = verify_email(serializer.validated_data["token"])
-        return Response(
-            {
-                "message": "User email verified successfully",
-                "data": {"email": user.email},
-            }
+        return success_response(
+            message="User email verified successfully",
+            data={"email": user.email},
+            status_code=status.HTTP_200_OK,
         )
 
 
@@ -56,17 +55,12 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        tokens = login_user(
-            email=serializer.validated_data["email"],
-            password=serializer.validated_data["password"],
-        )
+        tokens = login_user(**serializer.validated_data)
         out = TokenResponseSerializer(tokens)
 
-        return Response(
-            {
-                "message": "Tokens created successfully",
-                "data": out.data,
-            }
+        return success_response(
+            message="Tokens created successfully",
+            data=out.data,
         )
 
 
@@ -77,7 +71,7 @@ class LogoutView(APIView):
         serializer = LogoutSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         logout_user(serializer.validated_data["refresh"])
-        return Response({"message": "Logged out successfully"})
+        return success_response(message="Logged out successfully")
 
 
 class UserListView(APIView):
@@ -87,6 +81,7 @@ class UserListView(APIView):
     def get(self, request):
         users = list_all_users(request.GET)
         serializer = UserListSerializer(users, many=True)
-        return Response(
-            {"message": "Users fetched successfully.", "data": serializer.data}
+        return success_response(
+            message="Users fetched successfully.",
+            data=serializer.data,
         )
