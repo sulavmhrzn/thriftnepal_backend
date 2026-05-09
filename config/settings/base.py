@@ -22,9 +22,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework_simplejwt.token_blacklist",
     "django_structlog",
+    "auditlog",
     "apps.core",
     "apps.users",
     "apps.profiles",
+    "apps.audits",
 ]
 
 
@@ -37,6 +39,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
+    "auditlog.middleware.AuditlogMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

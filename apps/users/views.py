@@ -55,7 +55,7 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        tokens = login_user(**serializer.validated_data)
+        tokens = login_user(**serializer.validated_data, request=request)
         out = TokenResponseSerializer(tokens)
 
         return success_response(

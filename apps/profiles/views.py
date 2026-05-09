@@ -127,6 +127,7 @@ class SellerGovernmentIDView(APIView):
         upload_government_id(
             seller=seller,
             file=serializer.validated_data["file"],
+            request=request,
         )
 
         return success_response(

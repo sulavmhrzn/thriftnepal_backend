@@ -2,6 +2,7 @@ import structlog
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
+from apps.audits.services import create_business_event
 from apps.core.minio import delete_file, upload_file
 from apps.core.utils import generate_unique_slug
 from apps.profiles.models import SellerProfile, SellerSocialLink
@@ -107,7 +108,7 @@ def upload_banner_image(seller: SellerProfile, file) -> SellerProfile:
     return seller
 
 
-def upload_government_id(seller: SellerProfile, file) -> SellerProfile:
+def upload_government_id(seller: SellerProfile, file, request=None) -> SellerProfile:
     _validate_file(file, ALLOWED_DOCUMENT_TYPES, MAX_DOCUMENT_SIZE)
 
     if seller.government_id_key:
@@ -128,6 +129,9 @@ def upload_government_id(seller: SellerProfile, file) -> SellerProfile:
             "government_id_verified",
             "updated_at",
         ]
+    )
+    create_business_event(
+        action="government_id_uploaded", user=seller.user, request=request
     )
     logger.info("government_id_uploaded", seller_id=str(seller.id))
     return seller
