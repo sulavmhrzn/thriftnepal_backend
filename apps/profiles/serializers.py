@@ -49,10 +49,16 @@ class SellerProfileUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
+class SellerSocialLinkSerializer(serializers.Serializer):
+    platform = serializers.ChoiceField(choices=SocialPlatform.choices)
+    url = serializers.URLField()
+
+
 class SellerProfilePublicSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
     profile_picture_url = serializers.SerializerMethodField()
     banner_image_url = serializers.SerializerMethodField()
+    social_links = SellerSocialLinkSerializer(many=True)
 
     class Meta:
         model = SellerProfile
@@ -115,11 +121,6 @@ class SellerProfilePrivateSerializer(SellerProfilePublicSerializer):
         if not obj.government_id_key:
             return None
         return generate_presigned_url(obj.government_id_key)
-
-
-class SellerSocialLinkSerializer(serializers.Serializer):
-    platform = serializers.ChoiceField(choices=SocialPlatform.choices)
-    url = serializers.URLField()
 
 
 class SellerSocialLinkUpdateSerializer(serializers.Serializer):
