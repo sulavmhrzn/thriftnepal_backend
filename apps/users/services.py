@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.audits.services import create_business_event
 from apps.users.enums import UserRole
 from apps.users.selectors import (
     get_active_verified_user_by_email,
@@ -52,13 +53,22 @@ def verify_email(token: str):
     return user
 
 
-def login_user(email, password):
-    user = get_active_verified_user_by_email(email, password)
+def login_user(email, password, request=None):
+    try:
+        user = get_active_verified_user_by_email(email, password)
+
+    except ValidationError:
+        create_business_event(
+            action="user_login_failed",
+            metadata={"email": email},
+            request=request,
+        )
+        raise
     tokens = RefreshToken.for_user(user)
-    logger.info(
-        "user_logged_in",
-        user_id=str(user.id),
-        role=user.role,
+    create_business_event(
+        action="user_logged_in",
+        user=user,
+        request=request,
     )
     return {"access": str(tokens.access_token), "refresh": tokens}
 

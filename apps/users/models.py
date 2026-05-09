@@ -1,3 +1,4 @@
+from auditlog.registry import auditlog
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -51,3 +52,13 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     def __str__(self):
         return self.email
+
+
+auditlog.register(
+    User,
+    exclude_fields=[
+        "password",
+        "updated_at",
+        "last_login",
+    ],
+)

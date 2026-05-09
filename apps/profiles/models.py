@@ -1,3 +1,4 @@
+from auditlog.registry import auditlog
 from django.db import models
 
 from apps.core.models import BaseModel
@@ -68,3 +69,16 @@ class SellerSocialLink(BaseModel):
 
     def __str__(self):
         return f"{self.seller.shop_name} - {self.platform}"
+
+
+auditlog.register(
+    SellerProfile,
+    exclude_fields=[
+        "updated_at",
+        "average_rating",
+        "total_reviews",
+        "total_sales",
+        "total_listings",
+    ],
+)
+auditlog.register(SellerSocialLink, exclude_fields=["updated_at"])
