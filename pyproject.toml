@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "celery[redis]>=5.5.3",
     "django>=6.0.5",
+    "django-auditlog>=3.4.1",
     "django-environ>=0.13.0",
     "django-phonenumber-field[phonenumbers]>=8.4.0",
     "django-structlog>=10.0.0",
@@ -25,4 +26,8 @@ dev = [
     "faker>=40.15.0",
     "pytest>=9.0.3",
     "pytest-django>=4.12.0",
+    "ruff>=0.15.12",
 ]
+
+[tool.ruff]
+extend-exclude = ["**/migrations"]
