@@ -7,6 +7,8 @@ roles:
       - list
       - retrieve
       - create
+    profiles:
+      - retrieve
   
   seller:
     listings:
@@ -18,6 +20,10 @@ roles:
     orders:
       - list
       - retrieve
+    profiles:
+      - create
+      - retrieve
+      - update
   
   admin:
     listings: 
@@ -25,4 +31,6 @@ roles:
     orders:
       - "*"
     users:
+      - "*"
+    profiles:
       - "*"

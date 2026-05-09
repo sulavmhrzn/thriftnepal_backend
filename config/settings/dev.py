@@ -45,3 +45,10 @@ LOGGING["formatters"] = {
 }
 
 LOGGING["handlers"]["console"]["formatter"] = "colored"
+
+MINIO_ACCESS_KEY = env("MINIO_ACCESS_KEY")
+MINIO_SECRET_KEY = env("MINIO_SECRET_KEY")
+MINIO_PUBLIC_BUCKET = env("MINIO_PUBLIC_BUCKET")
+MINIO_PRIVATE_BUCKET = env("MINIO_PRIVATE_BUCKET")
+MINIO_ENDPOINT = env("MINIO_ENDPOINT")
+MINIO_USE_SSL = env("MINIO_USE_SSL", default=False)

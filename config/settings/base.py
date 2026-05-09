@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django_structlog",
     "apps.core",
     "apps.users",
+    "apps.profiles",
 ]
 
 
