@@ -49,16 +49,10 @@ class SellerProfileUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
-class SellerProfileSerializer(serializers.ModelSerializer):
-    """
-    Output serializer. Read only.
-    Generates presigned MinIO URLs from stored object keys.
-    """
-
+class SellerProfilePublicSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
     profile_picture_url = serializers.SerializerMethodField()
     banner_image_url = serializers.SerializerMethodField()
-    government_id_url = serializers.SerializerMethodField()
 
     class Meta:
         model = SellerProfile
@@ -88,7 +82,6 @@ class SellerProfileSerializer(serializers.ModelSerializer):
             "updated_at",
             "profile_picture_url",
             "banner_image_url",
-            "government_id_url",
         ]
         read_only_fields = fields
 
@@ -101,6 +94,22 @@ class SellerProfileSerializer(serializers.ModelSerializer):
         if not obj.banner_image:
             return None
         return get_public_url(obj.banner_image)
+
+
+class SellerProfilePrivateSerializer(SellerProfilePublicSerializer):
+    """
+    Output serializer. Read only.
+    Generates presigned MinIO URLs from stored object keys.
+    """
+
+    government_id_url = serializers.SerializerMethodField()
+
+    class Meta(SellerProfilePublicSerializer.Meta):
+        fields = SellerProfilePublicSerializer.Meta.fields + [
+            "government_id_url",
+            "government_id_verified",
+        ]
+        read_only_fields = fields
 
     def get_government_id_url(self, obj):
         if not obj.government_id_key:

@@ -16,7 +16,7 @@ def create_seller_profile(sender, instance, created, **kwargs):
     if instance.role == UserRole.SELLER:
         if not SellerProfile.objects.filter(user=instance).exists():
             placeholder_name = f"shop_{str(instance.id)[:8]}"
-            slug = generate_unique_slug(placeholder_name, SellerProfile)
+            slug = generate_unique_slug(placeholder_name)
             SellerProfile.objects.create(
                 user=instance, shop_name=placeholder_name, slug=slug
             )

@@ -1,3 +1,5 @@
+import uuid
+
 from django.utils.text import slugify
 
 
@@ -9,16 +11,10 @@ def soft_delete(instance):
     instance.save(update_fields=["is_deleted", "updated_at"])
 
 
-def generate_unique_slug(text, model_class):
+def generate_unique_slug(name: str) -> str:
     """
-    Generates unque slug for any model
+    Generates slug from name + 8 char UUID suffix.
     """
-    base_slug = slugify(text)
-    slug = base_slug
-    counter = 1
-
-    while model_class.objects.filter(slug=slug).exists():
-        slug = f"{base_slug}-{counter}"
-        counter += 1
-
-    return slug
+    base_slug = slugify(name)
+    unique_suffix = str(uuid.uuid4())[:8]
+    return f"{base_slug}-{unique_suffix}"

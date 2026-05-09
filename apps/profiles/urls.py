@@ -1,24 +1,19 @@
 from django.urls import path
 
 from apps.profiles.views import (
+    ListTopSellerProfileView,
     SellerBannerImageView,
     SellerGovernmentIDView,
+    SellerProfileDetailView,
+    SellerProfileListView,
     SellerProfileMeView,
     SellerProfilePictureView,
     SellerSocialLinksView,
 )
 
-# GET     /api/sellers/{slug}/                  → SellerProfileDetailView
-# GET     /api/sellers/me/                      → SellerProfileMeView [x]
-# PATCH   /api/sellers/me/                      → SellerProfileMeView [x]
-# POST    /api/sellers/me/profile-picture/      → SellerProfilePictureView
-# POST    /api/sellers/me/banner/               → SellerBannerImageView
-# POST    /api/sellers/me/government-id/        → SellerGovernmentIDView
-# GET     /api/sellers/me/social-links/         → SellerSocialLinksView [x]
-# PUT     /api/sellers/me/social-links/         → SellerSocialLinksView [x]
-# GET     /api/sellers/top-rated/               → TopRatedSellersView
-
 urlpatterns = [
+    path("", SellerProfileListView.as_view(), name="seller-profile-list"),
+    path("top-rated/", ListTopSellerProfileView.as_view(), name="seller-profile-top"),
     path("me/", SellerProfileMeView.as_view(), name="seller-profile-me"),
     path(
         "me/social-links/", SellerSocialLinksView.as_view(), name="seller-social-links"
@@ -33,5 +28,8 @@ urlpatterns = [
         "me/government-id/",
         SellerGovernmentIDView.as_view(),
         name="seller-government-id",
+    ),
+    path(
+        "<slug:slug>/", SellerProfileDetailView.as_view(), name="seller-profile-detail"
     ),
 ]

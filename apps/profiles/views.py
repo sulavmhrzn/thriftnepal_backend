@@ -4,14 +4,18 @@ from rest_framework.views import APIView
 from apps.core.permissions import YAMLPermission
 from apps.core.responses import success_response
 from apps.profiles.selectors import (
+    get_all_active_sellers,
+    get_seller_profile_by_slug,
     get_seller_profile_by_user,
     get_social_links_by_seller,
+    get_top_rated_sellers,
 )
 from apps.profiles.serializers import (
     BannerImageUploadSerializer,
     GovernmentIDUploadSerializer,
     ProfilePictureUploadSerializer,
-    SellerProfileSerializer,
+    SellerProfilePrivateSerializer,
+    SellerProfilePublicSerializer,
     SellerProfileUpdateSerializer,
     SellerSocialLinkSerializer,
     SellerSocialLinkUpdateSerializer,
@@ -31,7 +35,7 @@ class SellerProfileMeView(APIView):
 
     def get(self, request):
         seller = get_seller_profile_by_user(request.user)
-        serializer = SellerProfileSerializer(seller)
+        serializer = SellerProfilePrivateSerializer(seller)
         return success_response(
             message="Profile fetched successfully", data=serializer.data
         )
@@ -43,7 +47,7 @@ class SellerProfileMeView(APIView):
         )
         serializer.is_valid(raise_exception=True)
         updated_profile = update_seller_profile(seller, serializer.validated_data)
-        out = SellerProfileSerializer(updated_profile)
+        out = SellerProfilePrivateSerializer(updated_profile)
         return success_response(message="Profile updated successfully", data=out.data)
 
 
@@ -85,7 +89,7 @@ class SellerProfilePictureView(APIView):
         )
         return success_response(
             message="Profile picture uploaded successfully.",
-            data=SellerProfileSerializer(updated_seller).data,
+            data=SellerProfilePrivateSerializer(updated_seller).data,
         )
 
 
@@ -106,7 +110,7 @@ class SellerBannerImageView(APIView):
 
         return success_response(
             message="Banner image uploaded successfully.",
-            data=SellerProfileSerializer(updated_seller).data,
+            data=SellerProfilePrivateSerializer(updated_seller).data,
         )
 
 
@@ -127,4 +131,31 @@ class SellerGovernmentIDView(APIView):
 
         return success_response(
             message="Government ID uploaded successfully. Pending admin review.",
+        )
+
+
+class SellerProfileDetailView(APIView):
+    def get(self, request, slug):
+        seller = get_seller_profile_by_slug(slug)
+        serializer = SellerProfilePublicSerializer(seller)
+        return success_response(
+            message="Seller profile fetched successfully", data=serializer.data
+        )
+
+
+class SellerProfileListView(APIView):
+    def get(self, request):
+        sellers = get_all_active_sellers()
+        serializer = SellerProfilePublicSerializer(sellers, many=True)
+        return success_response(
+            message="Sellers profile fetched successfully", data=serializer.data
+        )
+
+
+class ListTopSellerProfileView(APIView):
+    def get(self, request):
+        sellers = get_top_rated_sellers()
+        serializer = SellerProfilePublicSerializer(sellers, many=True)
+        return success_response(
+            message="Sellers profile fetched successfully", data=serializer.data
         )

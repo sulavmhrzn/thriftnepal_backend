@@ -18,7 +18,7 @@ def update_seller_profile(seller, data):
     with transaction.atomic():
         for field, value in data.items():
             if field == "shop_name" and value != seller.shop_name:
-                seller.slug = generate_unique_slug(value, SellerProfile)
+                seller.slug = generate_unique_slug(value)
 
             setattr(seller, field, value)
         seller.save()
