@@ -18,3 +18,11 @@ dependencies = [
     "pyyaml>=6.0.3",
     "structlog>=25.5.0",
 ]
+
+[dependency-groups]
+dev = [
+    "factory-boy>=3.3.3",
+    "faker>=40.15.0",
+    "pytest>=9.0.3",
+    "pytest-django>=4.12.0",
+]
