@@ -1,0 +1,36 @@
+roles:
+  buyer:
+    listings:
+      - list
+      - retrieve
+    orders:
+      - list
+      - retrieve
+      - create
+    profiles:
+      - retrieve
+  
+  seller:
+    listings:
+      - list
+      - retrieve
+      - create
+      - update
+      - destroy
+    orders:
+      - list
+      - retrieve
+    profiles:
+      - create
+      - retrieve
+      - update
+  
+  admin:
+    listings: 
+      - "*"
+    orders:
+      - "*"
+    users:
+      - "*"
+    profiles:
+      - "*"

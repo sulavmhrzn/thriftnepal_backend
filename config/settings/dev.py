@@ -1,3 +1,5 @@
+import structlog
+
 from . import base
 
 for setting_name in dir(base):
@@ -6,6 +8,7 @@ for setting_name in dir(base):
 
 env = base.env
 BASE_DIR = base.BASE_DIR
+LOGGING = base.LOGGING
 
 
 # Development defaults can be overridden from .env
@@ -22,3 +25,30 @@ DATABASES = {
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
     )
 }
+
+# Email — MailHog (SMTP on port 1025, web UI on port 8025)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST", default="mailhog")
+EMAIL_PORT = env.int("EMAIL_PORT", default=1025)
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+EMAIL_USE_TLS = False
+
+FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", default="http://localhost:3000")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="admin@thriftnepal.com")
+
+LOGGING["formatters"] = {
+    "colored": {
+        "()": structlog.stdlib.ProcessorFormatter,
+        "processor": structlog.dev.ConsoleRenderer(colors=True),
+    }
+}
+
+LOGGING["handlers"]["console"]["formatter"] = "colored"
+
+MINIO_ACCESS_KEY = env("MINIO_ACCESS_KEY")
+MINIO_SECRET_KEY = env("MINIO_SECRET_KEY")
+MINIO_PUBLIC_BUCKET = env("MINIO_PUBLIC_BUCKET")
+MINIO_PRIVATE_BUCKET = env("MINIO_PRIVATE_BUCKET")
+MINIO_ENDPOINT = env("MINIO_ENDPOINT")
+MINIO_USE_SSL = env("MINIO_USE_SSL", default=False)
