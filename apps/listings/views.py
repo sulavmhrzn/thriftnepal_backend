@@ -253,11 +253,11 @@ class SellerListingListView(APIView):
         filters = {k: v for k, v in filters.items() if v is not None}
 
         if status_filter := filters.get("status"):
-            if status_filter not in ListingStatus.choices:
+            if status_filter not in ListingStatus.values:
                 raise ValidationError(
                     {
                         "status": [
-                            f"Invalid status. Choices are: {', '.join(ListingStatus.value)}"
+                            f"Invalid status. Choices are: {', '.join(ListingStatus.values)}"
                         ]
                     }
                 )
