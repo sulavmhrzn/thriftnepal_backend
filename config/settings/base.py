@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.profiles",
     "apps.audits",
+    "apps.listings",
 ]
 
 

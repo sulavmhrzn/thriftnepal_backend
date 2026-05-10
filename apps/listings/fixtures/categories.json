@@ -1,0 +1,93 @@
+[
+  {
+    "model": "listings.Category",
+    "pk": "11111111-1111-1111-1111-111111111111",
+    "fields": {
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "name": "Electronics",
+      "slug": "electronics",
+      "parent": null,
+      "icon": "electronics",
+      "is_deleted": false
+    }
+  },
+  {
+    "model": "listings.Category",
+    "pk": "22222222-2222-2222-2222-222222222222",
+    "fields": {
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "name": "Phones",
+      "slug": "phones",
+      "parent": "11111111-1111-1111-1111-111111111111",
+      "icon": "phone",
+      "is_deleted": false
+    }
+  },
+  {
+    "model": "listings.Category",
+    "pk": "33333333-3333-3333-3333-333333333333",
+    "fields": {
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "name": "Laptops",
+      "slug": "laptops",
+      "parent": "11111111-1111-1111-1111-111111111111",
+      "icon": "laptop",
+      "is_deleted": false
+    }
+  },
+  {
+    "model": "listings.Category",
+    "pk": "44444444-4444-4444-4444-444444444444",
+    "fields": {
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "name": "Clothing",
+      "slug": "clothing",
+      "parent": null,
+      "icon": "clothing",
+      "is_deleted": false
+    }
+  },
+  {
+    "model": "listings.Category",
+    "pk": "55555555-5555-5555-5555-555555555555",
+    "fields": {
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "name": "Books",
+      "slug": "books",
+      "parent": null,
+      "icon": "book",
+      "is_deleted": false
+    }
+  },
+  {
+    "model": "listings.Category",
+    "pk": "66666666-6666-6666-6666-666666666666",
+    "fields": {
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "name": "Furniture",
+      "slug": "furniture",
+      "parent": null,
+      "icon": "furniture",
+      "is_deleted": false
+    }
+  },
+  {
+    "model": "listings.Category",
+    "pk": "77777777-7777-7777-7777-777777777777",
+    "fields": {
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z",
+      "name": "Other",
+      "slug": "other",
+      "parent": null,
+      "icon": "other",
+      "is_deleted": false
+    }
+  }
+]
