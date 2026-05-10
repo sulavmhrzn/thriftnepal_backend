@@ -17,7 +17,6 @@ def success_response(
     )
 
 
-# TODO: For phase 2
 def paginated_response(
     message: str,
     data,
@@ -33,3 +32,30 @@ def paginated_response(
         },
         status=status_code,
     )
+
+
+def get_paginated_data(paginator, queryset, request, serializer_class) -> dict:
+    page = paginator.paginate_queryset(queryset, request)
+
+    if page is not None:
+        serializer = serializer_class(page, many=True)
+        return {
+            "message": None,
+            "data": serializer.data,
+            "pagination": {
+                "next": paginator.get_next_link(),
+                "previous": paginator.get_previous_link(),
+                "page_size": paginator.page_size,
+            },
+        }
+
+    serializer = serializer_class(queryset, many=True)
+    return {
+        "message": None,
+        "data": serializer.data,
+        "pagination": {
+            "next": None,
+            "previous": None,
+            "page_size": None,
+        },
+    }
