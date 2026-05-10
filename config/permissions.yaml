@@ -16,7 +16,7 @@ roles:
       - retrieve
       - create
       - update
-      - destroy_own
+      - destroy
     orders:
       - list
       - retrieve
