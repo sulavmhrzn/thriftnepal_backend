@@ -4,8 +4,9 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 
+from apps.core.pagination import DefaultCursorPagination
 from apps.core.permissions import YAMLPermission
-from apps.core.responses import success_response
+from apps.core.responses import get_paginated_data, paginated_response, success_response
 from apps.listings.enums import ListingStatus
 from apps.listings.selectors import (
     get_active_listings,
@@ -89,10 +90,14 @@ class ListingListCreateView(APIView):
         filters = {k: v for k, v in filters.items() if v is not None}
 
         listings = get_active_listings(filters)
-        serializer = ListingSerializer(listings, many=True)
-        return success_response(
-            message="Listings fetched successfully", data=serializer.data
+        result = get_paginated_data(
+            DefaultCursorPagination(),
+            queryset=listings,
+            request=request,
+            serializer_class=ListingSerializer,
         )
+        result["message"] = "Listings fetched successfully"
+        return paginated_response(**result)
 
     def post(self, request):
         seller = get_seller_profile_by_user(request.user)
@@ -263,7 +268,11 @@ class SellerListingListView(APIView):
                 )
 
         listings = get_listings_by_seller(seller=seller, filters=filters)
-        serializer = ListingSerializer(listings, many=True)
-        return success_response(
-            message="Your listings fetched successfully", data=serializer.data
+        result = get_paginated_data(
+            paginator=DefaultCursorPagination(),
+            queryset=listings,
+            request=request,
+            serializer_class=ListingSerializer,
         )
+        result["message"] = "Your listings fetched successfully"
+        return paginated_response(**result)
