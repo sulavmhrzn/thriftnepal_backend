@@ -8,6 +8,7 @@ from apps.core.pagination import DefaultCursorPagination
 from apps.core.permissions import YAMLPermission
 from apps.core.responses import get_paginated_data, paginated_response, success_response
 from apps.listings.enums import ListingStatus
+from apps.listings.search import search_listings
 from apps.listings.selectors import (
     get_active_listings,
     get_all_categories,
@@ -276,3 +277,61 @@ class SellerListingListView(APIView):
         )
         result["message"] = "Your listings fetched successfully"
         return paginated_response(**result)
+
+
+class ListingSearchView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        query = request.query_params.get("q", "").strip()
+
+        try:
+            page = int(request.query_params.get("page", 1))
+            if page < 1:
+                raise ValueError
+        except (ValueError, TypeError):
+            raise ValidationError({"page": ["Must be a positive integer."]})
+
+        try:
+            page_size = int(request.query_params.get("page_size", 20))
+            if page_size < 1:
+                raise ValueError
+        except (ValueError, TypeError):
+            raise ValidationError({"page_size": ["Must be a positive integer."]})
+
+        filters = {
+            "condition": request.query_params.get("condition"),
+            "category_slug": request.query_params.get("category_slug"),
+            "min_price": request.query_params.get("min_price"),
+            "max_price": request.query_params.get("max_price"),
+            "is_negotiable": _parse_bool(request.query_params.get("is_negotiable")),
+            "accepts_meetup": _parse_bool(request.query_params.get("accepts_meetup")),
+            "accepts_delivery": _parse_bool(
+                request.query_params.get("accepts_delivery")
+            ),
+            "seller_province": request.query_params.get("province"),
+            "is_verified_seller": _parse_bool(
+                request.query_params.get("verified_seller")
+            ),
+        }
+
+        filters = {k: v for k, v in filters.items() if v is not None}
+
+        result = search_listings(
+            query=query or None,
+            filters=filters,
+            page=page,
+            page_size=page_size,
+        )
+
+        return paginated_response(
+            message="Search results fetched successfully",
+            data=ListingSerializer(result["listings"], many=True).data,
+            pagination={
+                "total": result["total"],
+                "page": result["page"],
+                "pages": result["pages"],
+                "page_size": result["page_size"],
+                "facets": result["facets"],
+            },
+        )
