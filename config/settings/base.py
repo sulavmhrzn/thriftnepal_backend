@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "django_structlog",
     "auditlog",
+    "django_elasticsearch_dsl",
     "apps.core",
     "apps.users",
     "apps.profiles",

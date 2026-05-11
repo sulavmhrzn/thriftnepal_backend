@@ -1,5 +1,5 @@
 import structlog
-from django.db.models import Count
+from django.db.models import Case, Count, When
 from rest_framework.exceptions import NotFound
 
 from apps.listings.models import Category, Listing, ListingImage
@@ -134,3 +134,34 @@ def get_listing_image_by_id(image_id, listing: Listing) -> ListingImage:
         return ListingImage.objects.get(id=image_id, listing=listing)
     except ListingImage.DoesNotExist:
         raise NotFound("Image not found")
+
+
+def get_listings_by_ids(listing_ids: list) -> list[Listing]:
+    if not listing_ids:
+        return []
+    preserved_order = Case(
+        *[When(id=id, then=pos) for pos, id in enumerate(listing_ids)]
+    )
+    return (
+        Listing.objects.select_related(
+            "seller",
+            "seller__user",
+            "category",
+            "category__parent",
+        )
+        .prefetch_related("images")
+        .filter(id__in=listing_ids)
+        .order_by(preserved_order)
+    )
+
+
+def get_listing_by_id_for_indexing(listing_id: str) -> Listing | None:
+    try:
+        return Listing.all_objects.select_related(
+            "seller",
+            "seller__user",
+            "category",
+            "category__parent",
+        ).get(id=listing_id)
+    except Listing.DoesNotExist:
+        return None

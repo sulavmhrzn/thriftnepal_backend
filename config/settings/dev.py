@@ -52,3 +52,10 @@ MINIO_PUBLIC_BUCKET = env("MINIO_PUBLIC_BUCKET")
 MINIO_PRIVATE_BUCKET = env("MINIO_PRIVATE_BUCKET")
 MINIO_ENDPOINT = env("MINIO_ENDPOINT")
 MINIO_USE_SSL = env("MINIO_USE_SSL", default=False)
+
+ELASTICSEARCH_DSL = {
+    "default": {
+        "hosts": env("ELASTICSEARCH_URL", default="http://localhost:9200"),
+        "http_auth": ("elastic", "changeme"),
+    }
+}

@@ -11,6 +11,7 @@ from apps.listings.views import (
     ListingMarkSoldView,
     ListingPublishView,
     ListingReactivateView,
+    ListingSearchView,
     SellerListingListView,
 )
 
@@ -21,6 +22,7 @@ urlpatterns = [
     path("me/", SellerListingListView.as_view(), name="seller-listings"),
     # Public listings
     path("", ListingListCreateView.as_view(), name="listing-list"),
+    path("search/", ListingSearchView.as_view(), name="listing-search"),
     path(
         "<uuid:listing_id>/",
         ListingDetailUpdateDeleteView.as_view(),
