@@ -18,6 +18,8 @@ services:
       MINIO_PRIVATE_BUCKET: ${MINIO_PRIVATE_BUCKET:-thriftnepal-private}
       MINIO_USE_SSL: "False"
       MINIO_ENDPOINT: minio:9000
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+
     ports:
       - "8000:8000"
     volumes:
@@ -32,7 +34,8 @@ services:
         condition: service_healthy
       minio-setup:
         condition: service_completed_successfully
-
+      elasticsearch:
+        condition: service_healthy
   makemigrations:
     build:
       context: .
@@ -79,7 +82,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A config worker --loglevel=info
+    command: celery -A config worker --loglevel=info -Q default,email
     env_file:
       - .env
     environment:
@@ -94,6 +97,28 @@ services:
       MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET:-thriftnepal-public}
       MINIO_PRIVATE_BUCKET: ${MINIO_PRIVATE_BUCKET:-thriftnepal-private}
       MINIO_USE_SSL: "False"
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+  celery_es_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A config worker --loglevel=info -Q elasticsearch --concurrency=2
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-thriftnepal}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin123}
+      MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET:-thriftnepal-public}
+      MINIO_PRIVATE_BUCKET: ${MINIO_PRIVATE_BUCKET:-thriftnepal-private}
+      MINIO_USE_SSL: "False"
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+
       
     volumes:
       - .:/app
@@ -177,9 +202,70 @@ services:
       echo 'MinIO setup complete';
       exit 0;
       "
+  elasticsearch:
+    image: elasticsearch:9.4.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false        # no HTTPS, just HTTP
+      - xpack.security.transport.ssl.enabled=false
+      - ELASTIC_PASSWORD=changeme
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -u elastic:changeme http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  elasticsearch-setup:
+    image: curlimages/curl:latest
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sleep 5
+        echo 'Setting kibana_system password...'
+        RETRIES=0
+        while [ $$RETRIES -lt 10 ]; do
+          STATUS=$$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST -u elastic:changeme \
+            http://elasticsearch:9200/_security/user/kibana_system/_password \
+            -H "Content-Type: application/json" \
+            -d '{"password": "kibana_changeme"}')
+          echo "Response: $$STATUS"
+          if [ "$$STATUS" = "200" ]; then
+            echo "Kibana setup complete"
+            exit 0
+          fi
+          RETRIES=$$(expr $$RETRIES + 1)
+          echo "Retry $$RETRIES/10..."
+          sleep 5
+        done
+        echo "Setup failed after 10 retries"
+        exit 1
+  kibana:
+    image: kibana:9.4.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=kibana_changeme
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=abc12345abc12345abc12345abc12345
+    depends_on:
+      elasticsearch-setup:
+        condition: service_completed_successfully
+
 
 volumes:
   postgres_data:
   redis_data:
   minio_data:
   web_venv:
+  elasticsearch_data:
