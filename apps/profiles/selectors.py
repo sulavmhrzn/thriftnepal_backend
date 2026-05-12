@@ -1,7 +1,7 @@
 import structlog
 from rest_framework.exceptions import NotFound
 
-from apps.profiles.models import SellerProfile, SellerSocialLink
+from apps.profiles.models import BuyerProfile, SellerProfile, SellerSocialLink
 
 logger = structlog.get_logger(__name__)
 
@@ -52,3 +52,17 @@ def get_all_active_sellers() -> list[SellerProfile]:
 
 def get_social_links_by_seller(seller: SellerProfile) -> list[SellerSocialLink]:
     return SellerSocialLink.objects.filter(seller=seller).order_by("platform")
+
+
+def get_buyer_profile_by_user(user) -> BuyerProfile:
+    try:
+        return BuyerProfile.objects.select_related("user").get(user=user)
+    except BuyerProfile.DoesNotExist:
+        raise NotFound("Buyer profile not found.")
+
+
+def get_buyer_profile_by_id(profile_id) -> BuyerProfile:
+    try:
+        return BuyerProfile.objects.select_related("user").get(id=profile_id)
+    except BuyerProfile.DoesNotExist:
+        raise NotFound("Buyer profile not found.")

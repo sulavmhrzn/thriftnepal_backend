@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.core.utils import generate_unique_slug
-from apps.profiles.models import SellerProfile
+from apps.profiles.models import BuyerProfile, SellerProfile
 from apps.users.enums import UserRole
 from apps.users.models import User
 
@@ -20,3 +20,6 @@ def create_seller_profile(sender, instance, created, **kwargs):
             SellerProfile.objects.create(
                 user=instance, shop_name=placeholder_name, slug=slug
             )
+    elif instance.role == UserRole.BUYER:
+        if not BuyerProfile.objects.filter(user=instance).exists():
+            BuyerProfile.objects.create(user=instance)

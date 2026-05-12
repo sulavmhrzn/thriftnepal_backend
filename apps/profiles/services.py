@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from apps.audits.services import create_business_event
 from apps.core.minio import delete_file, upload_file
 from apps.core.utils import generate_unique_slug
-from apps.profiles.models import SellerProfile, SellerSocialLink
+from apps.profiles.models import BuyerProfile, SellerProfile, SellerSocialLink
 
 logger = structlog.get_logger(__name__)
 
@@ -135,3 +135,37 @@ def upload_government_id(seller: SellerProfile, file, request=None) -> SellerPro
     )
     logger.info("government_id_uploaded", seller_id=str(seller.id))
     return seller
+
+
+def update_buyer_profile(buyer: BuyerProfile, data: dict) -> BuyerProfile:
+    with transaction.atomic():
+        for field, value in data.items():
+            setattr(buyer, field, value)
+        buyer.save()
+    logger.info(
+        "buyer_profile_updated",
+        buyer_id=str(buyer.id),
+        user_id=str(buyer.user.id),
+        updated_fields=list(data.keys()),
+    )
+    return buyer
+
+
+def upload_buyer_avatar(buyer: BuyerProfile, file) -> BuyerProfile:
+    with transaction.atomic():
+        if buyer.profile_picture:
+            delete_file(buyer.profile_picture)
+        key = upload_file(
+            file=file,
+            prefix=f"buyer-profiles/{buyer.id}/profile",
+            content_type=file.content_type,
+            private=False,
+        )
+        buyer.profile_picture = key
+        buyer.save(update_fields=["profile_picture", "updated_at"])
+    logger.info(
+        "buyer_avatar_uploaded",
+        buyer_id=str(buyer.id),
+        key=key,
+    )
+    return buyer

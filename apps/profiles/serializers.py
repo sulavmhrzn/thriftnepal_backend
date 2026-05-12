@@ -6,7 +6,7 @@ from rest_framework.validators import UniqueValidator
 
 from apps.core.minio import generate_presigned_url, get_public_url
 from apps.profiles.enums import SocialPlatform
-from apps.profiles.models import SellerProfile
+from apps.profiles.models import BuyerProfile, SellerProfile
 
 ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"]
 ALLOWED_DOCUMENT_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".pdf"]
@@ -181,3 +181,49 @@ class GovernmentIDUploadSerializer(serializers.Serializer):
             )
 
         return file
+
+
+class BuyerProfileSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source="user.full_name", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    avatar_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BuyerProfile
+        fields = [
+            "id",
+            "full_name",
+            "email",
+            "bio",
+            "province",
+            "district",
+            "city",
+            "phone_number",
+            "avatar_url",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_avatar_url(self, obj) -> str | None:
+        if obj.profile_picture:
+            return get_public_url(obj.profile_picture)
+        return None
+
+
+class BuyerProfileUpdateSerializer(serializers.ModelSerializer):
+    phone_number = PhoneNumberField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = False
+
+    class Meta:
+        model = BuyerProfile
+        fields = [
+            "bio",
+            "province",
+            "district",
+            "city",
+            "phone_number",
+        ]

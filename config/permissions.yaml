@@ -8,8 +8,10 @@ roles:
       - retrieve
       - create
     profiles:
+      - create
       - retrieve
-  
+      - update
+
   seller:
     listings:
       - list

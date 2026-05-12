@@ -71,6 +71,34 @@ class SellerSocialLink(BaseModel):
         return f"{self.seller.shop_name} - {self.platform}"
 
 
+class BuyerProfile(BaseModel):
+    user = models.OneToOneField(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="buyer_profile",
+    )
+    bio = models.TextField(blank=True, null=True)
+
+    province = models.CharField(
+        max_length=60,
+        choices=Province.choices,
+        blank=True,
+        null=True,
+    )
+    district = models.CharField(
+        max_length=100,
+        choices=District.choices,
+        blank=True,
+        null=True,
+    )
+    city = models.CharField(max_length=100, blank=True, null=True)
+    profile_picture = models.CharField(max_length=500, blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.full_name} ({self.user.email})"
+
+
 auditlog.register(
     SellerProfile,
     exclude_fields=[
@@ -81,4 +109,5 @@ auditlog.register(
         "total_listings",
     ],
 )
+auditlog.register(BuyerProfile, exclude_fields=["updated_at"])
 auditlog.register(SellerSocialLink, exclude_fields=["updated_at"])

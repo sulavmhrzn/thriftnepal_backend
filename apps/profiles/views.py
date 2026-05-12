@@ -5,6 +5,7 @@ from apps.core.permissions import YAMLPermission
 from apps.core.responses import success_response
 from apps.profiles.selectors import (
     get_all_active_sellers,
+    get_buyer_profile_by_user,
     get_seller_profile_by_slug,
     get_seller_profile_by_user,
     get_social_links_by_seller,
@@ -12,6 +13,8 @@ from apps.profiles.selectors import (
 )
 from apps.profiles.serializers import (
     BannerImageUploadSerializer,
+    BuyerProfileSerializer,
+    BuyerProfileUpdateSerializer,
     GovernmentIDUploadSerializer,
     ProfilePictureUploadSerializer,
     SellerProfilePrivateSerializer,
@@ -21,9 +24,11 @@ from apps.profiles.serializers import (
     SellerSocialLinkUpdateSerializer,
 )
 from apps.profiles.services import (
+    update_buyer_profile,
     update_seller_profile,
     update_social_links,
     upload_banner_image,
+    upload_buyer_avatar,
     upload_government_id,
     upload_profile_picture,
 )
@@ -159,4 +164,42 @@ class ListTopSellerProfileView(APIView):
         serializer = SellerProfilePublicSerializer(sellers, many=True)
         return success_response(
             message="Sellers profile fetched successfully", data=serializer.data
+        )
+
+
+class BuyerProfileMeView(APIView):
+    permission_classes = [IsAuthenticated, YAMLPermission]
+    resource_name = "profiles"
+
+    def get(self, request):
+        buyer = get_buyer_profile_by_user(request.user)
+        serializer = BuyerProfileSerializer(buyer)
+        return success_response(
+            message="Profile fetched successfully", data=serializer.data
+        )
+
+    def patch(self, request):
+        buyer = get_buyer_profile_by_user(request.user)
+        serializer = BuyerProfileUpdateSerializer(instance=buyer, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = update_buyer_profile(buyer, serializer.validated_data)
+        out = BuyerProfileSerializer(updated)
+        return success_response(
+            message="Profile updated successfully",
+            data=out.data,
+        )
+
+
+class BuyerProfilePictureView(APIView):
+    permission_classes = [IsAuthenticated, YAMLPermission]
+    resource_name = "profiles"
+
+    def post(self, request):
+        buyer = get_buyer_profile_by_user(request.user)
+        serializer = ProfilePictureUploadSerializer(data=request.FILES)
+        serializer.is_valid(raise_exception=True)
+        updated = upload_buyer_avatar(buyer, serializer.validated_data["file"])
+        return success_response(
+            message="Profile picture uploaded successfully",
+            data=BuyerProfileSerializer(updated).data,
         )
