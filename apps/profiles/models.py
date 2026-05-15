@@ -99,6 +99,34 @@ class BuyerProfile(BaseModel):
         return f"{self.user.full_name} ({self.user.email})"
 
 
+class SavedListing(BaseModel):
+    buyer = models.ForeignKey(
+        BuyerProfile,
+        on_delete=models.CASCADE,
+        related_name="saved_listings",
+    )
+    listing = models.ForeignKey(
+        "listings.Listing",
+        on_delete=models.CASCADE,
+        related_name="saved_by",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["buyer", "listing"], name="unique_buyer_saved_listing"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["buyer"]),
+            models.Index(fields=["listing"]),
+        ]
+
+    def __str__(self):
+        return f"{self.buyer.user.full_name} -> {self.listing.title}"
+
+
 auditlog.register(
     SellerProfile,
     exclude_fields=[
@@ -111,3 +139,4 @@ auditlog.register(
 )
 auditlog.register(BuyerProfile, exclude_fields=["updated_at"])
 auditlog.register(SellerSocialLink, exclude_fields=["updated_at"])
+auditlog.register(SavedListing, exclude_fields=["updated_at"])

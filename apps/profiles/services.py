@@ -1,11 +1,20 @@
 import structlog
 from django.db import transaction
+from django.db.models import F
 from rest_framework.exceptions import ValidationError
 
 from apps.audits.services import create_business_event
 from apps.core.minio import delete_file, upload_file
 from apps.core.utils import generate_unique_slug
-from apps.profiles.models import BuyerProfile, SellerProfile, SellerSocialLink
+from apps.listings.enums import ListingStatus
+from apps.listings.models import Listing
+from apps.profiles.models import (
+    BuyerProfile,
+    SavedListing,
+    SellerProfile,
+    SellerSocialLink,
+)
+from apps.profiles.selectors import get_saved_listing
 
 logger = structlog.get_logger(__name__)
 
@@ -169,3 +178,42 @@ def upload_buyer_avatar(buyer: BuyerProfile, file) -> BuyerProfile:
         key=key,
     )
     return buyer
+
+
+def create_saved_listing(buyer: BuyerProfile, listing: Listing) -> SavedListing:
+    if listing.status in [ListingStatus.ARCHIVED, ListingStatus.SOLD]:
+        raise ValidationError({"non_field_errors": ["Listing is no longer available."]})
+
+    with transaction.atomic():
+        saved, created = SavedListing.objects.get_or_create(
+            buyer=buyer,
+            listing=listing,
+        )
+
+        if not created:
+            raise ValidationError({"non_field_errors": ["Listing already saved."]})
+
+        Listing.all_objects.filter(id=listing.id).update(save_count=F("save_count") + 1)
+
+    logger.info(
+        "listing_saved",
+        buyer_id=str(buyer.id),
+        listing_id=str(listing.id),
+    )
+    return saved
+
+
+def delete_saved_listing(buyer: BuyerProfile, listing: Listing) -> None:
+    saved = get_saved_listing(buyer, listing)
+
+    with transaction.atomic():
+        saved.delete()
+        Listing.all_objects.filter(id=listing.id).update(
+            save_count=F("save_count") - 1,
+        )
+
+    logger.info(
+        "listing_unsaved",
+        buyer_id=str(buyer.id),
+        listing_id=str(listing.id),
+    )

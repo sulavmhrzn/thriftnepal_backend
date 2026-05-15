@@ -65,6 +65,7 @@ class Listing(BaseModel):
     accepts_delivery = models.BooleanField(default=False)
 
     views_count = models.PositiveIntegerField(default=0)
+    save_count = models.PositiveIntegerField(default=0)
 
     objects = ListingManager()
     all_objects = AllListingManager()
@@ -78,6 +79,7 @@ class Listing(BaseModel):
             models.Index(fields=["condition"]),
             models.Index(fields=["price"]),
             models.Index(fields=["created_at"]),
+            models.Index(fields=["save_count"]),
         ]
 
     def __str__(self):

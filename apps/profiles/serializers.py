@@ -5,8 +5,10 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from apps.core.minio import generate_presigned_url, get_public_url
+from apps.listings.enums import ListingStatus
+from apps.listings.serializers import ListingSerializer
 from apps.profiles.enums import SocialPlatform
-from apps.profiles.models import BuyerProfile, SellerProfile
+from apps.profiles.models import BuyerProfile, SavedListing, SellerProfile
 
 ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"]
 ALLOWED_DOCUMENT_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".pdf"]
@@ -227,3 +229,21 @@ class BuyerProfileUpdateSerializer(serializers.ModelSerializer):
             "city",
             "phone_number",
         ]
+
+
+class SavedListingSerializer(serializers.ModelSerializer):
+    listing = ListingSerializer(read_only=True)
+    is_available = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SavedListing
+        fields = (
+            "id",
+            "listing",
+            "is_available",
+            "created_at",
+        )
+        read_only_fields = fields
+
+    def get_is_available(self, obj) -> bool:
+        return obj.listing.status == ListingStatus.ACTIVE

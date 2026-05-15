@@ -1,11 +1,16 @@
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+from apps.core.pagination import DefaultCursorPagination
 from apps.core.permissions import YAMLPermission
-from apps.core.responses import success_response
+from apps.core.responses import get_paginated_data, paginated_response, success_response
+from apps.listings.selectors import get_listing_by_id
 from apps.profiles.selectors import (
     get_all_active_sellers,
     get_buyer_profile_by_user,
+    get_saved_listing_by_id,
+    get_saved_listings_by_buyer,
     get_seller_profile_by_slug,
     get_seller_profile_by_user,
     get_social_links_by_seller,
@@ -17,6 +22,7 @@ from apps.profiles.serializers import (
     BuyerProfileUpdateSerializer,
     GovernmentIDUploadSerializer,
     ProfilePictureUploadSerializer,
+    SavedListingSerializer,
     SellerProfilePrivateSerializer,
     SellerProfilePublicSerializer,
     SellerProfileUpdateSerializer,
@@ -24,6 +30,8 @@ from apps.profiles.serializers import (
     SellerSocialLinkUpdateSerializer,
 )
 from apps.profiles.services import (
+    create_saved_listing,
+    delete_saved_listing,
     update_buyer_profile,
     update_seller_profile,
     update_social_links,
@@ -203,3 +211,44 @@ class BuyerProfilePictureView(APIView):
             message="Profile picture uploaded successfully",
             data=BuyerProfileSerializer(updated).data,
         )
+
+
+class SavedListingsView(APIView):
+    permission_classes = [IsAuthenticated, YAMLPermission]
+    resource_name = "saved_listings"
+
+    def get(self, request):
+        buyer = get_buyer_profile_by_user(request.user)
+        qs = get_saved_listings_by_buyer(buyer)
+        result = get_paginated_data(
+            paginator=DefaultCursorPagination(),
+            queryset=qs,
+            request=request,
+            serializer_class=SavedListingSerializer,
+        )
+        result["message"] = "Saved listings fetched successfully"
+
+        return paginated_response(**result)
+
+    def post(self, request):
+        buyer = get_buyer_profile_by_user(request.user)
+        listing_id = request.data.get("listing_id")
+        if not listing_id:
+            raise ValidationError({"listing_id": ["This field is required."]})
+        listing = get_listing_by_id(listing_id)
+        saved = create_saved_listing(buyer, listing)
+        return success_response(
+            message="Listing saved successfully.",
+            data=SavedListingSerializer(saved).data,
+        )
+
+
+class SavedListingDetailView(APIView):
+    permission_classes = [IsAuthenticated, YAMLPermission]
+    resource_name = "saved_listings"
+
+    def delete(self, request, saved_listing_id):
+        buyer = get_buyer_profile_by_user(request.user)
+        saved = get_saved_listing_by_id(saved_listing_id, buyer)
+        delete_saved_listing(buyer, saved.listing)
+        return success_response(message="Listing removed from saved.")

@@ -11,6 +11,10 @@ roles:
       - create
       - retrieve
       - update
+    saved_listings:
+      - create
+      - destroy
+      - retrieve
 
   seller:
     listings:

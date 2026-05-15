@@ -8,7 +8,7 @@ from apps.core.minio import delete_file, upload_file
 from apps.listings.enums import ListingStatus
 from apps.listings.models import Listing, ListingImage
 from apps.listings.selectors import get_category_by_id, get_listing_image_count
-from apps.profiles.models import SellerProfile
+from apps.profiles.models import SavedListing, SellerProfile
 
 logger = structlog.get_logger(__name__)
 
@@ -76,8 +76,10 @@ def update_listing(listing: Listing, data: dict) -> Listing:
 def soft_delete_listing(listing: Listing, request=None):
     with transaction.atomic():
         listing.is_deleted = True
-        listing.save(update_fields=["is_deleted", "updated_at"])
+        listing.save_count = 0
+        listing.save(update_fields=["is_deleted", "save_count", "updated_at"])
         ListingImage.objects.filter(listing=listing).update(is_deleted=True)
+        SavedListing.objects.filter(listing=listing).delete()
 
     create_business_event(
         action="listing_deleted",
